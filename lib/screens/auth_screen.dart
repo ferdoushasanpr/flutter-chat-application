@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+final _firebase = FirebaseAuth.instance;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -11,13 +14,35 @@ class _AuthScreenState extends State<AuthScreen> {
   final formKey = GlobalKey<FormState>();
 
   bool isLogin = true;
+  String _enteredEmail = "";
+  String _enteredPassword = "";
 
-  void _onSubmit() {
+  void _onSubmit() async {
     final isValid = formKey.currentState!.validate();
-
     if (!isValid) return;
-
     formKey.currentState!.save();
+
+    try {
+      if (isLogin) {
+        final data = await _firebase.signInWithEmailAndPassword(
+          email: _enteredEmail,
+          password: _enteredPassword,
+        );
+        print(data);
+      } else {
+        final data = await _firebase.createUserWithEmailAndPassword(
+          email: _enteredEmail,
+          password: _enteredPassword,
+        );
+        print(data);
+      }
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Authentication failed.', textAlign: TextAlign.center),
+        ),
+      );
+    }
   }
 
   @override
@@ -48,7 +73,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             !value.contains('@')) {
                           return 'Please enter a valid email address.';
                         }
-
+                        _enteredEmail = value.trim();
                         return null;
                       },
                       keyboardType: TextInputType.emailAddress,
@@ -66,6 +91,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         if (value == null || value.trim().length < 6) {
                           return 'Password must be at least 6 characters long.';
                         }
+                        _enteredPassword = value;
                         return null;
                       },
                       keyboardType: TextInputType.emailAddress,

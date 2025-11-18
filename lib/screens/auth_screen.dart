@@ -36,7 +36,7 @@ class _AuthScreenState extends State<AuthScreen> {
         );
         print(data);
       }
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Authentication failed.', textAlign: TextAlign.center),
@@ -73,8 +73,11 @@ class _AuthScreenState extends State<AuthScreen> {
                             !value.contains('@')) {
                           return 'Please enter a valid email address.';
                         }
-                        _enteredEmail = value.trim();
+
                         return null;
+                      },
+                      onSaved: (value) {
+                        _enteredEmail = value!.trim();
                       },
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
@@ -91,8 +94,11 @@ class _AuthScreenState extends State<AuthScreen> {
                         if (value == null || value.trim().length < 6) {
                           return 'Password must be at least 6 characters long.';
                         }
-                        _enteredPassword = value;
+
                         return null;
+                      },
+                      onSaved: (value) {
+                        _enteredPassword = value!;
                       },
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(

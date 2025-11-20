@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 final _firebase = FirebaseAuth.instance;
+final db = FirebaseFirestore.instance;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -16,6 +18,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool isLogin = true;
   String _enteredEmail = "";
   String _enteredPassword = "";
+  String _enteredUsername = "";
 
   void _onSubmit() async {
     final isValid = formKey.currentState!.validate();
@@ -34,7 +37,10 @@ class _AuthScreenState extends State<AuthScreen> {
           email: _enteredEmail,
           password: _enteredPassword,
         );
-        print(data);
+        await db.collection('users').doc(data.user!.uid).set({
+          'user_email': data.user!.email,
+          'user_name': _enteredUsername,
+        });
       }
     } on FirebaseAuthException {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -66,6 +72,28 @@ class _AuthScreenState extends State<AuthScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   children: [
+                    if (!isLogin)
+                      TextFormField(
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a valid username.';
+                          }
+
+                          return null;
+                        },
+                        onSaved: (value) {
+                          _enteredUsername = value!.trim();
+                        },
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: "Enter Username",
+                          fillColor: Colors.white70,
+                          filled: true,
+                        ),
+                        autocorrect: false,
+                        textCapitalization: TextCapitalization.none,
+                      ),
+                    if (!isLogin) SizedBox(height: 5),
                     TextFormField(
                       validator: (value) {
                         if (value == null ||
